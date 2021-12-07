@@ -1,9 +1,15 @@
+import re
+
 
 def validPalindrome(s):
-    if type(len(s) / 2) != "int":
-        print("yes")
-    else:
-        print("no")
+    s = s.lower()
+    s = re.sub('[\W_]+', '', s)
+    if len(s) % 2 != 0:
+        s = s.replace(s[len(s)//2],"")
+    return s[:len(s)//2] == (s[len(s)//2:])[::-1]
+
+
+
 
 
     
@@ -13,4 +19,4 @@ def validPalindrome(s):
 
 
 
-print("heto")
+print(validPalindrome('a man, a plan, a canal: Panama'))
