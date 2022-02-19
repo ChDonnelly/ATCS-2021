@@ -1,4 +1,5 @@
 import random
+import time
 
 #IMPORTANT NOTE: HARD CODE THE BOARD INTO MAIN AND TEST UR FUNCTIONS!
 class TicTacToe:
@@ -13,7 +14,6 @@ class TicTacToe:
 
 
     def print_instructions(self):
-        # TODO: Print the instructions to the game
 
         print("Welcome to TicTacToe!\nPlayer 1 is X and Player 2 is 0\nTake turns placing your pieces - the first to 3 in a row wins!")
 
@@ -33,7 +33,6 @@ class TicTacToe:
 
 
     def is_valid_move(self, row, col):
-        # TODO: Check if the move is valid
         if row >= len(self.board) or col >= len(self.board[row]):
             return False
         else:
@@ -163,7 +162,50 @@ class TicTacToe:
 
         self.place_player(player,random_row,random_col)
 
-    def minimax(self,player,depth=None):
+    def minimax_no_depth(self,player):
+
+        opt_row = -1
+        opt_col = -1
+
+        if self.check_win("O"):
+            return (10, None, None)
+        if self.check_win("X"):
+            return (-10, None, None)
+        if self.check_tie():
+            return (0, None, None,)
+
+        if player == "O":
+            best = -100
+
+            for row in range(len(self.board)):
+                for col in range(len(self.board[row])):
+                    if (self.is_valid_move(row,col)):
+                        self.place_player(player,row,col)
+                        score = self.minimax_depth("X")[0]
+                        if best < score:
+                            best = score
+                            opt_row = row
+                            opt_col = col
+                        self.place_player("-",row,col)
+            return (best,opt_row,opt_col)
+
+        if player == "X":
+            worst = 100
+            for row in range(len(self.board)):
+                for col in range(len(self.board[row])):
+                    if (self.is_valid_move(row,col)):
+                        self.place_player(player,row,col)
+                        score = self.minimax_depth("O")[0]
+                        if worst > score:
+                            worst = score
+                            opt_row = row
+                            opt_col = col
+                        self.place_player("-",row,col)
+            return (worst,opt_row,opt_col)
+
+
+
+    def minimax_depth(self,player,depth):
 
         if depth == 0:
             return (0,None,None)
@@ -186,7 +228,7 @@ class TicTacToe:
                 for col in range(len(self.board[row])):
                     if (self.is_valid_move(row,col)):
                         self.place_player(player,row,col)
-                        score = self.minimax("X")[0]
+                        score = self.minimax_depth("X",depth-1)[0]
                         if best < score:
                             best = score
                             opt_row = row
@@ -202,7 +244,7 @@ class TicTacToe:
                 for col in range(len(self.board[row])):
                     if (self.is_valid_move(row,col)):
                         self.place_player(player,row,col)
-                        score = self.minimax("O")[0]
+                        score = self.minimax_depth("O",depth-1)[0]
                         if worst > score:
                             worst = score
                             opt_row = row
@@ -211,8 +253,60 @@ class TicTacToe:
             return (worst,opt_row,opt_col)
 
     def take_minimax_turn(self,player):
-        score, row, col = self.minimax(player)
-        self.place_player(player,row,col)
+
+        score_depth_minimax, row_depth_minimax, col_depth_minimax = self.minimax_depth(player,1000)
+
+        self.place_player(player,row_depth_minimax,col_depth_minimax)
+
+
+    def minimax_alpha_beta(self,player,depth,alpha,beta):
+        opt_row = -1
+        opt_col = -1
+
+        if self.check_win("O"):
+            return (10, None, None)
+        if self.check_win("X"):
+            return (-10, None, None)
+        if self.check_tie():
+            return (0, None, None,)
+
+        if player == "O":
+            best = -100
+
+            for row in range(len(self.board)):
+                for col in range(len(self.board[row])):
+                    if (self.is_valid_move(row,col)):
+                        self.place_player(player,row,col)
+                        score = self.minimax_alpha_beta("X",depth-1,alpha,beta)[0]
+                        self.place_player("-", row, col)
+                        if score > best:
+                            best = score
+                            alpha = max(alpha,score)
+                            opt_row = row
+                            opt_col = col
+                            if (alpha >= beta):
+                                return (best, opt_row, opt_col)
+
+            return (best,opt_row,opt_col)
+
+        if player == "X":
+            worst = 100
+            for row in range(len(self.board)):
+                for col in range(len(self.board[row])):
+                    if (self.is_valid_move(row,col)):
+                        self.place_player(player,row,col)
+                        score = self.minimax_alpha_beta("O",depth-1,alpha,beta)[0]
+                        self.place_player("-", row, col)
+                        if worst > score:
+                            worst = score
+                            beta = min(beta,score)
+                            opt_row = row
+                            opt_col = col
+                            if (alpha >= beta):
+                                return (worst, opt_row, opt_col)
+
+
+            return (worst,opt_row,opt_col)
 
 
 
