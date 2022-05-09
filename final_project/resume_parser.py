@@ -30,7 +30,7 @@ class resume_parser:
 
 
 #SOURCE: https://stackoverflow.com/questions/34460588/count-the-number-of-spaces-between-words-in-a-string
-    def get_header_words(self):
+    def get_related_section(self):
         header_words_in_text =[]
         #self.res = self.res.replace(',','')
 
@@ -40,40 +40,55 @@ class resume_parser:
         self.res = self.res.replace(',','')
         all_words = self.res.split()
         sample_headers = ['education']
+        word_scores = []
         for word in all_words:
-            word_scores = []
             for header_word in sample_headers:
                 score = self.get_word_similarity_score(header_word,word)
                 if score == None:
                     score = 0
                 word_scores.append(score)
 
-            if (all(v == 0 for v in word_scores) == False):
-                print("Header | " + sample_headers[word_scores.index(max(word_scores))] + "| ACTUAL | " + word)
+        top_score_indexes = []
+        seen = []
+        for i in range(10):
+            index_of_max_score = word_scores.index(max(word_scores))
+            if index_of_max_score not in seen:
+                seen.append(index_of_max_score)
+                top_score_indexes.append(index_of_max_score)
 
-        #https://stackoverflow.com/questions/3525953/check-if-all-values-of-iterable-are-zero
-            #if (all(v == 0 for v in word_scores) == False): #If word_scores does not contain only zeros
-               # print("Header | " + sample_headers.index(max(word_scores)) + "| ACTUAL | " + word)
-
-'''
-number_list = [1, 2, 3]
-max_value = max(number_list) Return the max value of the list.
-max_index = number_list. index(max_value) Find the index of the max value.
-print(max_index)
-
-
-
-'''
+        top_score_indexes.sort()
+        return [top_score_indexes, all_words]
+        #return [word_scores[i] for i in top_ten_score_indexes]
 
 
 
-                #print(header_word," ",word,str(self.get_word_similarity_score(header_word,word)))
 
-#https://www.codegrepper.com/code-examples/python/python+remove+commas+and+periods+from+string
 
-'''
-    def get_sections(self,header_word_list):
+        #after get header words related to education, find sections between those
+        #other method will look for name sof colleges that will match
 
+
+
+    def get_sections(self,top_score_indexes, text_list):
+        if len(top_score_indexes) == 1:
+            print([text_list[i] for i in range(top_score_indexes[0]-20,top_score_indexes[0]+20)])
+        else:
+            words_in_between_list =[]
+            for i in range(len(top_score_indexes)-1):
+                first_index = top_score_indexes[i]
+                last_index = top_score_indexes[i + 1] + 1
+                section = text_list[slice(first_index,last_index)]
+                words_in_between_list.extend(section)
+            words_in_between_list.extend(text_list(slice(top_score_indexes[len(top_score_indexes) - 1]),len(text_list)))
+            print(words_in_between_list)
+
+
+
+
+
+
+
+        '''
         sections = {}
 
         for i in range(len(header_word_list)-1):
@@ -86,20 +101,31 @@ print(max_index)
                 sections[begin_word] = result.group()
 
         return sections
-
-
-
-    def get_education(self):
-        pass
-
-    def get_age(self):
-        pass
-
-
-
-
 '''
+    def do_it(self):
+        x = self.get_related_section()
+        self.get_sections(x[0], x[1])
 
+
+
+
+            
+        
+
+
+        #https://stackoverflow.com/questions/3525953/check-if-all-values-of-iterable-are-zero
+            #if (all(v == 0 for v in word_scores) == False): #If word_scores does not contain only zeros
+               # print("Header | " + sample_headers.index(max(word_scores)) + "| ACTUAL | " + word)
+
+
+
+
+
+
+
+                #print(header_word," ",word,str(self.get_word_similarity_score(header_word,word)))
+
+#https://www.codegrepper.com/code-examples/python/python+remove+commas+and+periods+from+string
 
 
 
@@ -120,39 +146,18 @@ if __name__ == "__main__":
 
 
 
+
 #https://stackoverflow.com/questions/58585052/find-most-common-substring-in-a-list-of-strings
-    #data = pd.read_csv('Resume.csv')
-    #parsy = resume_parser(data)
-    #parsy.get_header_words()
+    data = pd.read_csv('Resume.csv')
+    parsy = resume_parser(data)
+    parsy.do_it()
 
 
 
-    text = """Some economists have responded positively to Bitcoin, including
-        Francois R. Velde, senior economist of the Federal Reserve in Chicago
-        who described it as an elegant solution to the problem of creating a
-        digital currency. In November 2013 Richard Branson announced that
-        Virgin Galactic would accept Bitcoin as payment, saying that he had invested
-        in Bitcoin and found it fascinating how a whole new global currency
-        has been created, encouraging others to also invest in Bitcoin.
-        Other economists commenting on Bitcoin have been critical.
-        Economist Paul Krugman has suggested that the structure of the currency
-        incentivizes hoarding and that its value derives from the expectation that
-        others will accept it as payment. Economist Larry Summers has expressed
-        a wait and see attitude when it comes to Bitcoin. Nick Colas, a market
-        strategist for ConvergEx Group, has remarked on the effect of increasing
-        use of Bitcoin and its restricted supply, noting, When incremental
-        adoption meets relatively fixed supply, it should be no surprise that
-        prices go up. And that’s exactly what is happening to BTC prices."""
 
 
-    st = StanfordNERTagger('stanford-ner/english.all.3class.distsim.crf.ser.gz',
-                           'stanford-ner/stanford-ner.jar')
 
-    for sent in nltk.sent_tokenize(text):
-        tokens = nltk.tokenize.word_tokenize(sent)
-        tags = st.tag(tokens)
-        for tag in tags:
-            if tag[1] in ["PERSON", "LOCATION", "ORGANIZATION"]:
-                print(tag)
+
+
 
 
